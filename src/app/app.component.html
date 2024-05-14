@@ -1,0 +1,19 @@
+<!-- app.component.html -->
+<div class="container-sm mt-3">
+  <div class="card mx-auto" style="width: fit-content;">
+    <div class="card-header">Tic Tac Toe</div>
+    <div class="card-body">
+      <div class="board">
+        <div *ngFor="let row of board; let i = index" class="board-row">
+          <button class="buttonTicTacToe" *ngFor="let cell of row; let j = index" (click)="makeMove(i, j)" [disabled]="cell !== null || winner" [ngClass]="{'winner': isWinningCell(i,j)}">
+            {{ cell }}
+          </button>
+        </div>
+      </div>
+      <div *ngIf="winner">Gewinner ist {{ winner }}</div>
+      <button class="btn btn-primary" (click)="newGame()">Neues Spiel</button>
+      <!-- <button class="btn btn-light">Einstellungen</button> -->
+
+    </div>
+  </div>
+</div>
