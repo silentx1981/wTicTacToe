@@ -3,15 +3,19 @@ import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule} from "@angular/forms";
 import {NgbModal, NgbModule} from "@ng-bootstrap/ng-bootstrap";
+import { HttpClientModule } from '@angular/common/http';
+import { VersionService } from './version.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, FormsModule, NgbModule],
+  imports: [RouterOutlet, CommonModule, FormsModule, NgbModule, HttpClientModule],
+  providers: [VersionService],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit {
+  version: string = '0.0.0';
   title = 'wTicTacToe';
 
   board: any[][];
@@ -22,8 +26,10 @@ export class AppComponent implements OnInit {
   player2: string = 'Player 2';
   charPlayer1: string = 'X';
   charPlayer2: string = 'O';
+  typePlayer1: string = 'human';
+  typePlayer2: string = 'cpu';
 
-  constructor(private modalService: NgbModal) {
+  constructor(private modalService: NgbModal, private versionService: VersionService) {
     this.board = [];
     this.currentPlayer = this.charPlayer1;
     this.winner = null;
@@ -34,6 +40,15 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.versionService.getVersion().subscribe(
+      (data: string) => {
+        this.version = data;
+      },
+      (error) => {
+        console.error('Error loading version:', error);
+      }
+    );
+
     this.newGame();
   }
 
@@ -42,6 +57,20 @@ export class AppComponent implements OnInit {
     this.currentPlayer = this.charPlayer1;
     this.winner = null;
     this.checkWinner(true);
+  }
+
+  makeAutoMove() {
+    let availablePositions = [];
+    for (let i = 0; i < this.board.length; i++) {
+      for (let j = 0; j < this.board[i].length; j++) {
+        if (!this.board[i][j]) {
+          availablePositions.push([i, j]);
+        }
+      }
+    }
+
+    const [x, y] = availablePositions[0];
+    this.makeMove(x, y);
   }
 
   makeMove(x: number, y: number) {
@@ -54,6 +83,12 @@ export class AppComponent implements OnInit {
         this.winner = this.currentPlayer === this.charPlayer1 ? this.player1 : this.player2;
       }
       this.currentPlayer = this.currentPlayer === this.charPlayer1 ? this.charPlayer2 : this.charPlayer1;
+
+      if (this.currentPlayer === this.charPlayer1 && this.typePlayer1 === 'cpu')
+        this.makeAutoMove();
+      else if (this.currentPlayer === this.charPlayer2 && this.typePlayer2 === 'cpu')
+        this.makeAutoMove();
+
     }
   }
 

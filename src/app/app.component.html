@@ -1,7 +1,10 @@
 <!-- app.component.html -->
 <div class="container-sm mt-3">
   <div class="card mx-auto" style="width: fit-content;">
-    <div class="card-header">Tic Tac Toe</div>
+    <div class="card-header d-flex justify-content-between algin-items-center">
+      <span>wTicTacToe</span>
+      <span>{{ version }}</span>
+    </div>
     <div class="card-body">
       <div class="board">
         <div *ngFor="let row of board; let i = index" class="board-row">
