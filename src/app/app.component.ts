@@ -28,6 +28,22 @@ export class AppComponent implements OnInit {
   charPlayer2: string = 'O';
   typePlayer1: string = 'human';
   typePlayer2: string = 'cpu';
+  levelPlayer1: number = 1;
+  levelPlayer2: number = 1;
+  cpuWaitingMax: number = 3;
+  winningLines = [
+    // Horizontale Linien
+    [[0, 0], [0, 1], [0, 2]],
+    [[1, 0], [1, 1], [1, 2]],
+    [[2, 0], [2, 1], [2, 2]],
+    // Vertikale Linien
+    [[0, 0], [1, 0], [2, 0]],
+    [[0, 1], [1, 1], [2, 1]],
+    [[0, 2], [1, 2], [2, 2]],
+    // Diagonale Linien
+    [[0, 0], [1, 1], [2, 2]],
+    [[0, 2], [1, 1], [2, 0]],
+  ];
 
   constructor(private modalService: NgbModal, private versionService: VersionService) {
     this.board = [];
@@ -37,6 +53,15 @@ export class AppComponent implements OnInit {
 
   public open(modal: any): void {
     this.modalService.open(modal);
+  }
+
+  getPositionLevel0(availablePositions: [number, number][]): [number, number] {
+    return availablePositions[0];
+  }
+
+  getPositionLevel1(availablePositions: [number, number][]): [number, number] {
+    const randomIndex = Math.floor(Math.random() * availablePositions.length);
+    return availablePositions[randomIndex];
   }
 
   ngOnInit() {
@@ -57,10 +82,12 @@ export class AppComponent implements OnInit {
     this.currentPlayer = this.charPlayer1;
     this.winner = null;
     this.checkWinner(true);
+    if (this.currentPlayer === this.charPlayer1 && this.typePlayer1 === 'cpu')
+      this.makeAutoMove(this.levelPlayer1);
   }
 
-  makeAutoMove() {
-    let availablePositions = [];
+  async makeAutoMove(level: number):Promise<true> {
+    let availablePositions: [number, number][] = [];
     for (let i = 0; i < this.board.length; i++) {
       for (let j = 0; j < this.board[i].length; j++) {
         if (!this.board[i][j]) {
@@ -70,11 +97,27 @@ export class AppComponent implements OnInit {
     }
 
     if (availablePositions.length > 0) {
-      const randomIndex = Math.floor(Math.random() * availablePositions.length);
-      const [x, y] = availablePositions[randomIndex];
+      let pos;
+      switch (level) {
+        case 0:
+          pos = this.getPositionLevel0(availablePositions)
+          break
+        case 1:
+          pos = this.getPositionLevel1(availablePositions)
+          break
+        default:
+          pos = this.getPositionLevel0(availablePositions)
+          break
+      }
+
+      const delay = Math.floor(Math.random() * this.cpuWaitingMax) + 1;
+      await new Promise(resolve => setTimeout(resolve, delay * 1000));
+
+      const [x, y] = pos;
       this.makeMove(x, y);
     }
 
+    return true;
   }
 
   makeMove(x: number, y: number) {
@@ -89,27 +132,15 @@ export class AppComponent implements OnInit {
       this.currentPlayer = this.currentPlayer === this.charPlayer1 ? this.charPlayer2 : this.charPlayer1;
 
       if (this.currentPlayer === this.charPlayer1 && this.typePlayer1 === 'cpu')
-        this.makeAutoMove();
+        this.makeAutoMove(this.levelPlayer1);
       else if (this.currentPlayer === this.charPlayer2 && this.typePlayer2 === 'cpu')
-        this.makeAutoMove();
+        this.makeAutoMove(this.levelPlayer2);
 
     }
   }
 
   checkWinner(reset = false): boolean {
-    const lines = [
-      // Horizontale Linien
-      [[0, 0], [0, 1], [0, 2]],
-      [[1, 0], [1, 1], [1, 2]],
-      [[2, 0], [2, 1], [2, 2]],
-      // Vertikale Linien
-      [[0, 0], [1, 0], [2, 0]],
-      [[0, 1], [1, 1], [2, 1]],
-      [[0, 2], [1, 2], [2, 2]],
-      // Diagonale Linien
-      [[0, 0], [1, 1], [2, 2]],
-      [[0, 2], [1, 1], [2, 0]],
-    ];
+    const lines = this.winningLines;
 
     for (let line of lines) {
       const [a, b, c] = line;
