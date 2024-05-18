@@ -69,8 +69,12 @@ export class AppComponent implements OnInit {
       }
     }
 
-    const [x, y] = availablePositions[0];
-    this.makeMove(x, y);
+    if (availablePositions.length > 0) {
+      const randomIndex = Math.floor(Math.random() * availablePositions.length);
+      const [x, y] = availablePositions[randomIndex];
+      this.makeMove(x, y);
+    }
+
   }
 
   makeMove(x: number, y: number) {
