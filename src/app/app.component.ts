@@ -5,6 +5,9 @@ import { FormsModule} from "@angular/forms";
 import {NgbModal, NgbModule} from "@ng-bootstrap/ng-bootstrap";
 import { HttpClientModule } from '@angular/common/http';
 import { VersionService } from './version.service';
+import { Player } from './interface/player.interface'
+
+declare var $: any;
 
 @Component({
   selector: 'app-root',
@@ -17,11 +20,14 @@ import { VersionService } from './version.service';
 export class AppComponent implements OnInit {
   version: string = '0.0.0';
   title = 'wTicTacToe';
+  players: Player[] = [];
 
   board: any[][];
   currentPlayer: string;
   winner: string | null;
-  winningCells: number[][] | null = null;
+  winningCells: number[][] | null = null
+  showProperties: boolean = false;
+  /*
   player1: string = 'Player 1';
   player2: string = 'Player 2';
   charPlayer1: string = 'X';
@@ -29,8 +35,11 @@ export class AppComponent implements OnInit {
   typePlayer1: string = 'human';
   typePlayer2: string = 'cpu';
   levelPlayer1: number = 1;
-  levelPlayer2: number = 1;
+  levelPlayer2: number = 0;
+  */
   cpuWaitingMax: number = 3;
+  levels:number[] = [0, 1]
+  types:string[] = ["human", "cpu"]
   winningLines = [
     // Horizontale Linien
     [[0, 0], [0, 1], [0, 2]],
@@ -47,8 +56,24 @@ export class AppComponent implements OnInit {
 
   constructor(private modalService: NgbModal, private versionService: VersionService) {
     this.board = [];
-    this.currentPlayer = this.charPlayer1;
     this.winner = null;
+
+    this.players[0] = {
+      name: "Player 1",
+      character: "X",
+      type: "human",
+      level: 1,
+    }
+
+    this.players[1] = {
+      name: "Player 2",
+      character: "O",
+      type: "cpu",
+      level: 1,
+    }
+
+    this.currentPlayer = this.players[0].character;
+
   }
 
   public open(modal: any): void {
@@ -72,18 +97,18 @@ export class AppComponent implements OnInit {
       (error) => {
         console.error('Error loading version:', error);
       }
-    );
+    )
 
     this.newGame();
   }
 
   newGame() {
     this.board = Array(3).fill(null).map(() => Array(3).fill(null));
-    this.currentPlayer = this.charPlayer1;
+    this.currentPlayer = this.players[0].character;
     this.winner = null;
     this.checkWinner(true);
-    if (this.currentPlayer === this.charPlayer1 && this.typePlayer1 === 'cpu')
-      this.makeAutoMove(this.levelPlayer1);
+    if (this.currentPlayer === this.players[0].character && this.players[0].type === 'cpu')
+      this.makeAutoMove(this.players[0].level);
   }
 
   async makeAutoMove(level: number):Promise<true> {
@@ -114,27 +139,32 @@ export class AppComponent implements OnInit {
       await new Promise(resolve => setTimeout(resolve, delay * 1000));
 
       const [x, y] = pos;
-      this.makeMove(x, y);
+      this.makeMove(x, y, true);
     }
 
     return true;
   }
 
-  makeMove(x: number, y: number) {
+  makeMove(x: number, y: number, auto: boolean = false) {
     if (this.winner !== null)
+      return;
+
+    if (this.currentPlayer === this.players[0].character && this.players[0].type === 'cpu' && !auto)
+      return;
+    if (this.currentPlayer === this.players[1].character && this.players[1].type === 'cpu' && !auto)
       return;
 
     if (!this.board[x][y]) {
       this.board[x][y] = this.currentPlayer;
       if (this.checkWinner()) {
-        this.winner = this.currentPlayer === this.charPlayer1 ? this.player1 : this.player2;
+        this.winner = this.currentPlayer === this.players[0].character ? this.players[0].name : this.players[1].name;
       }
-      this.currentPlayer = this.currentPlayer === this.charPlayer1 ? this.charPlayer2 : this.charPlayer1;
+      this.currentPlayer = this.currentPlayer === this.players[0].character ? this.players[1].character : this.players[0].character;
 
-      if (this.currentPlayer === this.charPlayer1 && this.typePlayer1 === 'cpu')
-        this.makeAutoMove(this.levelPlayer1);
-      else if (this.currentPlayer === this.charPlayer2 && this.typePlayer2 === 'cpu')
-        this.makeAutoMove(this.levelPlayer2);
+      if (this.currentPlayer === this.players[0].character && this.players[0].type === 'cpu')
+        this.makeAutoMove(this.players[0].level);
+      else if (this.currentPlayer === this.players[1].character && this.players[1].type === 'cpu')
+        this.makeAutoMove(this.players[1].level);
 
     }
   }

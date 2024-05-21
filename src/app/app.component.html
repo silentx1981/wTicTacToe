@@ -1,5 +1,5 @@
 <!-- app.component.html -->
-<div class="container-sm mt-3">
+<div class="container-sm mt-3" *ngIf="!showProperties">
   <div class="card mx-auto" style="width: fit-content;">
     <div class="card-header d-flex justify-content-between algin-items-center">
       <span>wTicTacToe</span>
@@ -13,10 +13,73 @@
           </button>
         </div>
       </div>
-      <div *ngIf="winner">Gewinner ist {{ winner }}</div>
-      <button class="btn btn-primary" (click)="newGame()">Neues Spiel</button>
-      <!-- <button class="btn btn-light">Einstellungen</button> -->
+      <div *ngIf="winner" class="alert alert-success" role="alert">
+        Gewinner ist <strong>{{ winner }}</strong>
+      </div>
+      <div *ngIf="!winner" class="alert alert-info" role="alert">
+        {{ currentPlayer === players[0].character ? players[0].name : players[1].name }} ist am Zug
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <button class="btn btn-primary mr-2" (click)="newGame()">Neues Spiel</button>
+        <button class="btn btn-light" (click)="showProperties = true">Einstellungen</button>
+      </div>
 
     </div>
   </div>
+
+</div>
+
+<div class="container-sm mt-3 d-flex flex-wrap justify-content-between" *ngIf="showProperties">
+  <div class="card m-2" style="width: fit-content; flex: 1 0 auto;" *ngFor="let player of players; let i = index">
+    <div class="card-header">Einstellungen Spieler {{i+1}}</div>
+    <div class="card-body">
+
+        <div class="form-group row mb-2">
+          <label for="namePlayer{{i}}" class="col-sm-3 col-form-label">Name</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" id="namePlayer{{i}}" [(ngModel)]="player.name" />
+          </div>
+        </div>
+
+      <div class="form-group row mb-2">
+        <label for="charPlayer{{i}}" class="col-sm-3 col-form-label">Character</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" id="charPlayer{{i}}" [(ngModel)]="player.character" maxlength="2" />
+        </div>
+      </div>
+
+      <div class="form-group row mb-2">
+        <label for="typePlayer{{i}}" class="col-sm-3 col-form-label">Type</label>
+        <div class="col-sm-9">
+          <div ngbDropdown class="d-inline-block w-100">
+            <button class="btn btn-outline-primary" id="typePlayer{{i}}" ngbDropdownToggle>
+              {{player.type ? player.type : 'Wählen Sie ein Typ'}}
+            </button>
+            <div ngbDropdownMenu>
+              <button ngbDropdownItem *ngFor="let type of types" (click)="player.type = type">{{type}}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+        <div class="form-group row mb-2">
+          <label for="levelPlayer{{i}}" class="col-sm-3 col-form-label">Level</label>
+          <div class="col-sm-9">
+            <div ngbDropdown class="d-inline-block w-100">
+              <button class="btn btn-outline-primary" id="levelPlayer{{i}}" ngbDropdownToggle>
+                {{player.level || player.level === 0 ? player.level : 'Wählen Sie ein Level'}}
+              </button>
+              <div ngbDropdownMenu>
+                <button ngbDropdownItem *ngFor="let level of levels" (click)="player.level = level">Level {{level}}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+    </div>
+  </div>
+</div>
+<div class="d-flex justify-content-center" *ngIf="showProperties">
+  <button class="btn btn-light" (click)="showProperties = false">Zurück</button>
 </div>
