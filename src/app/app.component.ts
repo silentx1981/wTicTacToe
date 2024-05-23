@@ -27,18 +27,8 @@ export class AppComponent implements OnInit {
   winner: string | null;
   winningCells: number[][] | null = null
   showProperties: boolean = false;
-  /*
-  player1: string = 'Player 1';
-  player2: string = 'Player 2';
-  charPlayer1: string = 'X';
-  charPlayer2: string = 'O';
-  typePlayer1: string = 'human';
-  typePlayer2: string = 'cpu';
-  levelPlayer1: number = 1;
-  levelPlayer2: number = 0;
-  */
   cpuWaitingMax: number = 3;
-  levels:number[] = [0, 1]
+  levels:number[] = [0, 1, 2, 3]
   types:string[] = ["human", "cpu"]
   winningLines = [
     // Horizontale Linien
@@ -62,14 +52,14 @@ export class AppComponent implements OnInit {
       name: "Player 1",
       character: "X",
       type: "human",
-      level: 1,
+      level: 3,
     }
 
     this.players[1] = {
       name: "Player 2",
       character: "O",
       type: "cpu",
-      level: 1,
+      level: 3,
     }
 
     this.currentPlayer = this.players[0].character;
@@ -87,6 +77,47 @@ export class AppComponent implements OnInit {
   getPositionLevel1(availablePositions: [number, number][]): [number, number] {
     const randomIndex = Math.floor(Math.random() * availablePositions.length);
     return availablePositions[randomIndex];
+  }
+
+  getPositionLevel2(availablePositions: [number, number][]): [number, number] {
+    let playerIndex = this.currentPlayer === this.players[0].character ? 1 : 0;
+    for (const line of this.winningLines) {
+      let counter = 0;
+      let lastEmpty: [number, number] | null = null;
+      for (const [x, y] of line) {
+        const value = this.board[x][y];
+        if (value === this.players[playerIndex].character) {
+          counter++;
+        } else if (!value) {
+          lastEmpty = [x, y];
+        }
+      }
+      if (counter === 2 && lastEmpty) {
+        return lastEmpty;
+      }
+    }
+
+    return this.getPositionLevel1(availablePositions);
+  }
+
+  getPositionLevel3(availablePositions: [number, number][]): [number, number] {
+    for (const line of this.winningLines) {
+      let counter = 0;
+      let lastEmpty: [number, number] | null = null;
+      for (const [x, y] of line) {
+        const value = this.board[x][y];
+        if (value === this.currentPlayer) {
+          counter++;
+        } else if (!value) {
+          lastEmpty = [x, y];
+        }
+      }
+      if (counter === 2 && lastEmpty) {
+        return lastEmpty;
+      }
+    }
+
+    return this.getPositionLevel2(availablePositions);
   }
 
   ngOnInit() {
@@ -129,6 +160,12 @@ export class AppComponent implements OnInit {
           break
         case 1:
           pos = this.getPositionLevel1(availablePositions)
+          break
+        case 2:
+          pos = this.getPositionLevel2(availablePositions)
+          break
+        case 3:
+          pos = this.getPositionLevel3(availablePositions)
           break
         default:
           pos = this.getPositionLevel0(availablePositions)
@@ -193,6 +230,18 @@ export class AppComponent implements OnInit {
 
   isWinningCell(i: number, j: number): boolean {
     return this.winningCells?.some(cell => cell[0] === i && cell[1] === j) || false;
+  }
+
+  isBoardFull() :boolean {
+    for (const row of this.board) {
+      for (const cell of row) {
+        if (!cell) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
 }

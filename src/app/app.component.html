@@ -16,8 +16,11 @@
       <div *ngIf="winner" class="alert alert-success" role="alert">
         Gewinner ist <strong>{{ winner }}</strong>
       </div>
-      <div *ngIf="!winner" class="alert alert-info" role="alert">
+      <div *ngIf="!winner && !isBoardFull()" class="alert alert-info" role="alert">
         {{ currentPlayer === players[0].character ? players[0].name : players[1].name }} ist am Zug
+      </div>
+      <div *ngIf="!winner && isBoardFull()" class="alert alert-info" role="alert">
+        Es gibt keinen Sieger
       </div>
 
       <div class="d-flex justify-content-between">
