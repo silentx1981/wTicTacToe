@@ -143,7 +143,7 @@ export class AppComponent implements OnInit {
       return lastEmpty;
 
     let playerIndex = this.currentPlayer === this.players[0].character ? 1 : 0
-    let posKey = this.players[playerIndex].positions.join("_");
+    let posKey = this.players[playerIndex].positions.sort((a, b) => a -b).join("_");
     let possiblePositions = this.positionsSelector[posKey];
 
     if (!possiblePositions)
@@ -238,7 +238,7 @@ export class AppComponent implements OnInit {
           break
       }
 
-      const delay = Math.floor(Math.random() * this.cpuWaitingMax) + 1;
+      const delay = this.cpuWaitingMax > 0 ? Math.floor(Math.random() * this.cpuWaitingMax) + 1 : 0;
       await new Promise(resolve => setTimeout(resolve, delay * 1000))
       if (!this.cancelGame) {
         const [x, y] = pos;
