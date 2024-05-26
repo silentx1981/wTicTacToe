@@ -1,5 +1,5 @@
 <!-- app.component.html -->
-<div class="container-sm mt-3" *ngIf="!showProperties">
+<div class="container-sm mt-3" *ngIf="!showProperties && !showLog">
   <div class="card mx-auto" style="width: fit-content;">
     <div class="card-header d-flex justify-content-between algin-items-center">
       <span>wTicTacToe</span>
@@ -25,6 +25,7 @@
 
       <div class="d-flex justify-content-between">
         <button class="btn btn-primary mr-2" (click)="newGame()">Neues Spiel</button>
+        <button class="btn btn-light" (click)="showLog = true">Log</button>
         <button class="btn btn-light" (click)="showProperties = true">Einstellungen</button>
       </div>
 
@@ -83,6 +84,33 @@
     </div>
   </div>
 </div>
-<div class="d-flex justify-content-center" *ngIf="showProperties">
-  <button class="btn btn-light" (click)="showProperties = false">Zurück</button>
+
+<div class="container-sm mt-3 d-flex flex-wrap justify-content-between" *ngIf="showLog">
+  <div class="card mx-auto" style="width: fit-content;">
+    <div class="card-header">Log</div>
+    <div class="card-body">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Spieler</th>
+            <th>Position</th>
+            <th>Bemerkung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of log">
+            <td>{{ row.player }} ({{ row.type }} / {{ row.level }})</td>
+            <td>{{ row.position }}</td>
+            <td>{{ row.bemerkung }}</td>
+          </tr>
+        </tbody>
+
+      </table>
+    </div>
+  </div>
+</div>
+
+<br>
+<div class="d-flex justify-content-center" *ngIf="showProperties || showLog">
+  <button class="btn btn-light" (click)="showProperties = false; showLog = false">Zurück</button>
 </div>

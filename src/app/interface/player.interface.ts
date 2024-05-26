@@ -3,4 +3,5 @@ export interface Player {
   character: string;
   type: string;
   level: number;
+  positions: number[];
 }
