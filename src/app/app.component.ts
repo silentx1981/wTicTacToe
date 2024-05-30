@@ -8,6 +8,7 @@ import { VersionService } from './version.service';
 import { PositionsmappingService} from "./positionsmapping.service";
 import { Player } from './interface/player.interface'
 import {last} from "rxjs";
+import {resolve} from "@angular/compiler-cli";
 
 declare var $: any;
 
@@ -29,11 +30,12 @@ export class AppComponent implements OnInit {
 
   board: any[][];
   currentPlayer: string;
+  nextNoWin: boolean = false;
   winner: string | null;
   winningCells: number[][] | null = null
   showProperties: boolean = false
   showLog: boolean = false
-  cpuWaitingMax: number = 0; //3;
+  cpuWaitingMax: number = 2;
   levels:number[] = [0, 1, 2, 3, 4]
   types:string[] = ["human", "cpu"]
   winningLines = [
@@ -55,7 +57,7 @@ export class AppComponent implements OnInit {
     this.board = [];
     this.winner = null;
     this.cancelGame = false
-    this.positionsSelector = [];
+    this.positionsSelector = {};
     this.log = [];
 
     this.players[0] = {
@@ -135,26 +137,36 @@ export class AppComponent implements OnInit {
 
   getPositionLevel4(availablePositions: [number, number][]): [number, number] {
     let lastEmpty = this.getBlocker(true);
+    let positionsSelector = JSON.parse(JSON.stringify(this.positionsSelector));
     if (lastEmpty !== null)
       return lastEmpty;
 
     lastEmpty = this.getBlocker()
     if (lastEmpty !== null)
-      return lastEmpty;
+      return lastEmpty
 
     let playerIndex = this.currentPlayer === this.players[0].character ? 1 : 0
     let posKey = this.players[playerIndex].positions.sort((a, b) => a -b).join("_");
-    let possiblePositions = this.positionsSelector[posKey];
+    let possiblePositions = positionsSelector[posKey];
 
-    if (!possiblePositions)
+    if (!possiblePositions || possiblePositions.length === 0)
       return this.getPositionLevel1(availablePositions);
 
-    let randomIndex = Math.floor(Math.random() * possiblePositions.length);
-    let myPos = this.positionsMapping[possiblePositions[randomIndex]];
-    let selectPosition:[number, number] = myPos.split("_").map(Number) as [number, number];
-    return selectPosition;
+    let randomIndex;
+    let myPos;
+    let selectPosition:[number, number];
 
-    return this.getPositionLevel1(availablePositions);
+    do {
+      randomIndex = Math.floor(Math.random() * possiblePositions.length);
+      myPos = this.positionsMapping[possiblePositions[randomIndex]];
+      selectPosition = myPos.split("_").map(Number) as [number, number];
+      possiblePositions.splice(randomIndex, 1)
+    } while (this.includesArrayInObject(availablePositions, selectPosition) && possiblePositions.length > 0)
+
+    if (!this.includesArrayInObject(availablePositions, selectPosition))
+      return this.getPositionLevel1(availablePositions)
+
+    return selectPosition;
   }
 
   ngOnInit() {
@@ -175,8 +187,8 @@ export class AppComponent implements OnInit {
           if (val) {
             let parts = val.split("-");
             let key = parts[0];
-            let values = parts.slice(1).map(Number);
-            this.positionsSelector[key] = values;
+            let values = parts.slice(1).map(Number)
+            this.positionsSelector[""+key+""] = values;
           }
         })
       },
@@ -185,20 +197,18 @@ export class AppComponent implements OnInit {
       }
     )
 
-    console.log(this.positionsSelector);
-
     this.newGame();
   }
 
   newGame() {
     this.board = Array(3).fill(null).map(() => Array(3).fill(null));
     this.currentPlayer = this.players[0].character;
-    this.players[0].positions = [];
-    this.players[0].positions = [];
+    this.players[0].positions = new Array<number>()
+    this.players[1].positions = new Array<number>()
     this.log = [];
     this.winner = null;
     this.checkWinner(true)
-    this.cancelGame = true;
+    this.cancelGame = true
     if (this.currentPlayer === this.players[0].character && this.players[0].type === 'cpu') {
       this.cancelGame = false;
       this.makeAutoMove(this.players[0].level);
@@ -206,6 +216,17 @@ export class AppComponent implements OnInit {
   }
 
   async makeAutoMove(level: number):Promise<true> {
+
+    const delay = this.cpuWaitingMax > 0 ? Math.floor(Math.random() * this.cpuWaitingMax) + 1 : 0.01;
+    if (delay < 1)
+      await new Promise(resolve => { resolve(true)})
+    else
+      await new Promise(resolve => setTimeout(resolve, delay * 1000))
+
+    if (this.isBoardFull() && !this.winner && this.nextNoWin && this.players[0].type === 'cpu' && this.players[1].type === 'cpu') {
+      this.newGame();
+    }
+
     let availablePositions: [number, number][] = [];
     for (let i = 0; i < this.board.length; i++) {
       for (let j = 0; j < this.board[i].length; j++) {
@@ -238,8 +259,6 @@ export class AppComponent implements OnInit {
           break
       }
 
-      const delay = this.cpuWaitingMax > 0 ? Math.floor(Math.random() * this.cpuWaitingMax) + 1 : 0;
-      await new Promise(resolve => setTimeout(resolve, delay * 1000))
       if (!this.cancelGame) {
         const [x, y] = pos;
         this.makeMove(x, y, true);
@@ -329,6 +348,10 @@ export class AppComponent implements OnInit {
         position: position,
         bemerkung: bemerkung}
     );
+  }
+
+  includesArrayInObject(obj: any, subArray: any): boolean {
+    return Object.values(obj).some(arr => Array.isArray(arr) && arr.length === subArray.length && arr.every((value, index) => value === subArray[index]));
   }
 
 }
