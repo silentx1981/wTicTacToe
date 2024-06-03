@@ -2,7 +2,7 @@
 <div class="container-sm mt-3" *ngIf="!showProperties && !showLog">
   <div class="card mx-auto" style="width: fit-content;">
     <div class="card-header d-flex justify-content-between algin-items-center">
-      <span>wTicTacToe</span>
+      <span>{{ title }}</span>
       <span>{{ version }}</span>
     </div>
     <div class="card-body">
@@ -58,28 +58,14 @@
         <div class="col-sm-9">
           <div ngbDropdown class="d-inline-block w-100">
             <button class="btn btn-outline-primary" id="typePlayer{{i}}" ngbDropdownToggle>
-              {{player.type ? player.type : 'Wählen Sie ein Typ'}}
+              {{player.type ? player.type.name : 'Wählen Sie ein Typ'}}
             </button>
             <div ngbDropdownMenu>
-              <button ngbDropdownItem *ngFor="let type of types" (click)="player.type = type">{{type}}</button>
+              <button ngbDropdownItem *ngFor="let type of types" (click)="player.type = type">{{type.name}}</button>
             </div>
           </div>
         </div>
       </div>
-
-        <div class="form-group row mb-2">
-          <label for="levelPlayer{{i}}" class="col-sm-3 col-form-label">Level</label>
-          <div class="col-sm-9">
-            <div ngbDropdown class="d-inline-block w-100">
-              <button class="btn btn-outline-primary" id="levelPlayer{{i}}" ngbDropdownToggle>
-                {{player.level || player.level === 0 ? player.level : 'Wählen Sie ein Level'}}
-              </button>
-              <div ngbDropdownMenu>
-                <button ngbDropdownItem *ngFor="let level of levels" (click)="player.level = level">Level {{level}}</button>
-              </div>
-            </div>
-          </div>
-        </div>
 
     </div>
   </div>
@@ -90,6 +76,11 @@
     <div class="card-header">Log</div>
     <div class="card-body">
       <table class="table">
+        <colgroup>
+          <col width="100px">
+          <col width="50px">
+          <col width="200px">
+        </colgroup>
         <thead>
           <tr>
             <th>Spieler</th>
@@ -99,9 +90,12 @@
         </thead>
         <tbody>
           <tr *ngFor="let row of log">
-            <td>{{ row.player }} ({{ row.type }} / {{ row.level }})</td>
+            <td>{{ row.player }}</td>
             <td>{{ row.position }}</td>
             <td>{{ row.bemerkung }}</td>
+          </tr>
+          <tr ng-if="log.length === 0">
+            <td class="text-center text-muted" colspan="3">Keine Einträge</td>
           </tr>
         </tbody>
 
